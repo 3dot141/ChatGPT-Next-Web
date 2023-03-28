@@ -1,13 +1,13 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import {create} from "zustand";
+import {persist} from "zustand/middleware";
 
-import { type ChatCompletionResponseMessage } from "openai";
+import {type ChatCompletionResponseMessage} from "openai";
 import {
   ControllerPool,
-  requestChatStream,
+  requestChatStream, requestChatStreamV2,
   requestWithPrompt,
 } from "../requests";
-import { trimTopic } from "../utils";
+import {trimTopic} from "../utils";
 
 import Locale from "../locales";
 
@@ -15,6 +15,11 @@ export type Message = ChatCompletionResponseMessage & {
   date: string;
   streaming?: boolean;
 };
+
+export type SessionMsg = {
+  userMessage: Message;
+  recentMessages: Message[];
+}
 
 export enum SubmitKey {
   Enter = "Enter",
@@ -212,7 +217,7 @@ export const useChatStore = create<ChatStore>()(
       },
 
       resetConfig() {
-        set(() => ({ config: { ...DEFAULT_CONFIG } }));
+        set(() => ({config: {...DEFAULT_CONFIG}}));
       },
 
       getConfig() {
@@ -222,7 +227,7 @@ export const useChatStore = create<ChatStore>()(
       updateConfig(updater) {
         const config = get().config;
         updater(config);
-        set(() => ({ config }));
+        set(() => ({config}));
       },
 
       selectSession(index: number) {
@@ -269,7 +274,7 @@ export const useChatStore = create<ChatStore>()(
 
         if (index < 0 || index >= sessions.length) {
           index = Math.min(sessions.length - 1, Math.max(0, index));
-          set(() => ({ currentSessionIndex: index }));
+          set(() => ({currentSessionIndex: index}));
         }
 
         const session = sessions[index];
@@ -286,6 +291,9 @@ export const useChatStore = create<ChatStore>()(
       },
 
       async onUserInput(content) {
+
+        // get recent messages
+        const recentMessages = get().getMessagesWithMemory();
         const userMessage: Message = {
           role: "user",
           content,
@@ -299,9 +307,6 @@ export const useChatStore = create<ChatStore>()(
           streaming: true,
         };
 
-        // get recent messages
-        const recentMessages = get().getMessagesWithMemory();
-        const sendMessages = recentMessages.concat(userMessage);
         const sessionIndex = get().currentSessionIndex;
         const messageIndex = get().currentSession().messages.length + 1;
 
@@ -311,9 +316,11 @@ export const useChatStore = create<ChatStore>()(
           session.messages.push(botMessage);
         });
 
-        // make request
-        console.log("[User Input] ", sendMessages);
-        requestChatStream(sendMessages, {
+
+        requestChatStreamV2({
+          userMessage,
+          recentMessages
+        }, {
           onMessage(content, done) {
             // stream response
             if (done) {
@@ -381,7 +388,7 @@ export const useChatStore = create<ChatStore>()(
         const session = sessions.at(sessionIndex);
         const messages = session?.messages;
         updater(messages?.at(messageIndex));
-        set(() => ({ sessions }));
+        set(() => ({sessions}));
       },
 
       summarizeSession() {
@@ -460,7 +467,7 @@ export const useChatStore = create<ChatStore>()(
         const sessions = get().sessions;
         const index = get().currentSessionIndex;
         updater(sessions[index]);
-        set(() => ({ sessions }));
+        set(() => ({sessions}));
       },
 
       clearAllData() {

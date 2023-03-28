@@ -1,6 +1,8 @@
-import type { ChatRequest, ChatReponse } from "./api/chat/typing";
-import { filterConfig, Message, ModelConfig, useAccessStore } from "./store";
+import type {ChatRequest, ChatReponse} from "./api/chat/typing";
+import {SessionMsg, filterConfig, Message, ModelConfig, useAccessStore} from "./store";
 import Locale from "./locales";
+import GPT3Tokenizer from "gpt3-tokenizer";
+import {supabaseClient} from "@/app/lib/embeddings-supabase";
 
 const TIME_OUT_MS = 30000;
 
@@ -43,7 +45,7 @@ function getHeaders() {
 }
 
 export async function requestChat(messages: Message[]) {
-  const req: ChatRequest = makeRequestParam(messages, { filterBot: true });
+  const req: ChatRequest = makeRequestParam(messages, {filterBot: true});
 
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -55,6 +57,33 @@ export async function requestChat(messages: Message[]) {
   });
 
   return (await res.json()) as ChatReponse;
+}
+
+
+export async function requestChatStreamV2(
+
+  sessionMsg: SessionMsg,
+  options?: {
+    filterBot?: boolean;
+    modelConfig?: ModelConfig;
+    onMessage: (message: string, done: boolean) => void;
+    onError: (error: Error) => void;
+    onController?: (controller: AbortController) => void;
+  }
+) {
+
+  const res = await fetch("/api/chat-message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(),
+    },
+    body: JSON.stringify(sessionMsg),
+  });
+  const resBody = (await res.json()) as SessionMsg;
+  const messages = [...resBody.recentMessages, resBody.userMessage];
+
+  await requestChatStream(messages, options)
 }
 
 export async function requestChatStream(
