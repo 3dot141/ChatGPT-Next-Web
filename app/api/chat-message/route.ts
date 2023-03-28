@@ -20,7 +20,7 @@ async function makeFrMsgChain(content: string, apiKey: string | undefined, recen
   // console.log("input: ", input);
 
   const embeddingResponse = await fetch(
-    "https://api.openai.com/v1/embeddings",
+    "https://chatgpt.3dot141.xyz/v1/embeddings",
     {
       method: "POST",
       headers: {
@@ -73,11 +73,11 @@ async function makeFrMsgChain(content: string, apiKey: string | undefined, recen
     }
   }
 
-  const systemContent = `你是一个有帮助的助手。当给你内容时，你只用这些信息来回答问题.
-  你以markdown的形式输出。如果有代码片段，那么就输出。
-  如果你不确定并且答案,没有明确写在提供的CONTEXT中，你就说:"对不起，我不知道如何帮助你." 
-  如果CONTEXT包含URL，请在回答的最后将它们放在 "SOURCE "的标题下。
-  始终包括CONTEXT中的所有相关来源的URL，但千万不要把一个URL列出来超过一次（在比较唯一性时忽略尾部的正斜杠）。不要编造URL`;
+  const systemContent = `你是一个严谨、精明、注重格式的助手。当给你 CONTEXT 时，你只用这些信息来回答问题。
+  你以 markdown 的形式输出。如果有代码片段，那么就输出为代码格式。
+  如果有多个步骤就用 1- 2- 3- 这样的形式输出。
+  如果你不确定且答案没有明确写在提供的CONTEXT中，你就说:"对不起，我不知道如何帮助你。" 
+  如果 CONTEXT 包含 URL，请在回答的最后将它们去重，然后以列表的形式，输出他的网页名和网页链接在 "SOURCE" 的下面。不要编造URL`;
 
   const userContent = `CONTEXT:
   Next.js是一个React框架，用于创建网络应用。
@@ -95,7 +95,7 @@ async function makeFrMsgChain(content: string, apiKey: string | undefined, recen
   \`\`\`
   
   SOURCES:
-  https://nextjs.org/docs/faq`;
+  \- [next.js官网](https://nextjs.org/docs/faq)`;
 
 
   const userMessage: Message = {
@@ -104,7 +104,7 @@ async function makeFrMsgChain(content: string, apiKey: string | undefined, recen
   ${contextText}
   
   USER QUESTION: 
-  ${query}
+  在FineReport中，${query}
   `,
     date: new Date().toDateString()
   };
