@@ -48,10 +48,24 @@ async function createStream(res: Response) {
   return stream;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const apiKey = req.headers.get("token");
-    const completionReq = (await req.json()) as CreateChatCompletionRequest;
+
+    const bodyStream = req.body;
+    if (bodyStream == null) {
+      throw new Error("request body is empty, please check it");
+    }
+
+    const chunks = [];
+    // @ts-ignore
+    for await (const chunk of bodyStream) {
+      chunks.push(chunk);
+    }
+
+    const body = JSON.parse(Buffer.concat(chunks).toString());
+
+    const completionReq = (await body) as CreateChatCompletionRequest;
 
     const chatCompletionRequest = await preHandleMessage(apiKey, completionReq);
     const res = await doRequestOpenai({

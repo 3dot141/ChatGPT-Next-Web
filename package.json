@@ -48,7 +48,8 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-text-transition": "^3.0.2",
     "react-use-measure": "^2.1.1",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "buffer": "^6.0.3"
   },
   "devDependencies": {
     "@types/node": "^18.14.6",
