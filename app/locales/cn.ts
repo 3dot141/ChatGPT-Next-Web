@@ -148,7 +148,7 @@ const cn = {
   Store: {
     DefaultTopic: "新的聊天",
     BotHello:
-      "直接输入会和 ChatGPT 聊天，输入 / 可以搜索目前支持的范式，比如 fr帮助文档助手",
+      "直接输入会和 ChatGPT 聊天，输入 / 可以搜索目前支持的范式。\n直接输入 fr空格，例如输入【fr 定时调度】，可以变身小助手",
     Error: "出错了，请稍后重试或者清空聊天内容后重试",
     Prompt: {
       History: (content: string) =>

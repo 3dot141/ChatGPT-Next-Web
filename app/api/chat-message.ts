@@ -159,10 +159,11 @@ export async function preHandleMessage(
       apiKey = process.env.OPENAI_API_KEY;
     }
 
-    const completionReq = (await req.json()) as CreateChatCompletionRequest;
+    const body = await req.json();
+    const completionReq = body as CreateChatCompletionRequest;
     const messages = completionReq.messages;
     const sessionMsg: SessionMsg = {
-      userMessage: messages[0],
+      userMessage: messages[messages.length - 1],
       recentMessages: messages.slice(0, messages.length - 1),
     };
     const chatMessage = await makeChatMessages(

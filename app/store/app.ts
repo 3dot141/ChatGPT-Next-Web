@@ -406,54 +406,45 @@ export const useChatStore = create<ChatStore>()(
           session.messages.push(botMessage);
         });
 
-        requestChatStreamV2(
-          {
-            userMessage,
-            recentMessages,
-          },
-          {
-            onMessage(content, done) {
-              // stream response
-              if (done) {
-                botMessage.streaming = false;
-                botMessage.content = content;
-                get().onNewMessage(botMessage);
-                ControllerPool.remove(
-                  sessionIndex,
-                  botMessage.id ?? messageIndex,
-                );
-              } else {
-                botMessage.content = content;
-                set(() => ({}));
-              }
-            },
-            onError(error, statusCode) {
-              if (statusCode === 401) {
-                botMessage.content = Locale.Error.Unauthorized;
-              } else {
-                botMessage.content += "\n\n" + Locale.Store.Error;
-              }
+        requestChatStream(sendMessages, {
+          onMessage(content, done) {
+            // stream response
+            if (done) {
               botMessage.streaming = false;
-              userMessage.isError = true;
-              botMessage.isError = true;
-              set(() => ({}));
+              botMessage.content = content;
+              get().onNewMessage(botMessage);
               ControllerPool.remove(
                 sessionIndex,
                 botMessage.id ?? messageIndex,
               );
-            },
-            onController(controller) {
-              // collect controller for stop/retry
-              ControllerPool.addController(
-                sessionIndex,
-                botMessage.id ?? messageIndex,
-                controller,
-              );
-            },
-            filterBot: !get().config.sendBotMessages,
-            modelConfig: get().config.modelConfig,
+            } else {
+              botMessage.content = content;
+              set(() => ({}));
+            }
           },
-        );
+          onError(error, statusCode) {
+            if (statusCode === 401) {
+              botMessage.content = Locale.Error.Unauthorized;
+            } else {
+              botMessage.content += "\n\n" + Locale.Store.Error;
+            }
+            botMessage.streaming = false;
+            userMessage.isError = true;
+            botMessage.isError = true;
+            set(() => ({}));
+            ControllerPool.remove(sessionIndex, botMessage.id ?? messageIndex);
+          },
+          onController(controller) {
+            // collect controller for stop/retry
+            ControllerPool.addController(
+              sessionIndex,
+              botMessage.id ?? messageIndex,
+              controller,
+            );
+          },
+          filterBot: !get().config.sendBotMessages,
+          modelConfig: get().config.modelConfig,
+        });
       },
 
       getMemoryPrompt() {
