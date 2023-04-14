@@ -12,8 +12,8 @@ export type SessionMsg = {
 };
 
 async function makeFrMsgChain(
-  content: string,
   apiKey: string,
+  content: string,
   recentMessages: Message[],
 ) {
   const query = content.slice(3);
@@ -131,7 +131,7 @@ async function makeFrMsgChain(
  * @param recentMessages
  */
 async function makeChatMessages(
-  apiKey: string,
+  apiKey: string | null,
   userMessage: Message,
   recentMessages: Message[],
 ): Promise<SessionMsg> {
@@ -140,6 +140,7 @@ async function makeChatMessages(
   const splits = content.split(" ");
   if (splits && splits.length !== 0) {
     if ("fr" === splits[0].toLowerCase()) {
+      // @ts-ignore
       return await makeFrMsgChain(content, apiKey, recentMessages);
     }
   }
@@ -147,19 +148,10 @@ async function makeChatMessages(
   return { userMessage: userMessage, recentMessages: recentMessages };
 }
 export async function preHandleMessage(
-  req: Request,
+  apiKey: string | null,
+  completionReq: CreateChatCompletionRequest,
 ): Promise<CreateChatCompletionRequest> {
   try {
-    let apiKey: string;
-    const userApiKey = req.headers.get("token");
-    if (userApiKey) {
-      apiKey = userApiKey;
-    } else {
-      // @ts-ignore
-      apiKey = process.env.OPENAI_API_KEY;
-    }
-
-    const completionReq = (await req.json()) as CreateChatCompletionRequest;
     const messages = completionReq.messages;
     const sessionMsg: SessionMsg = {
       userMessage: messages[messages.length - 1],

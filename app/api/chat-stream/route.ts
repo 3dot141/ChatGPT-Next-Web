@@ -50,7 +50,10 @@ async function createStream(res: Response) {
 
 export async function POST(req: Request) {
   try {
-    const chatCompletionRequest = await preHandleMessage(req);
+    const apiKey = req.headers.get("token");
+    const completionReq = (await req.json()) as CreateChatCompletionRequest;
+
+    const chatCompletionRequest = await preHandleMessage(apiKey, completionReq);
     const res = await doRequestOpenai({
       headers: req.headers,
       method: req.method,
