@@ -73,7 +73,7 @@ async function makeFrMsgChain(content: string, apiKey: string | undefined, recen
     }
   }
 
-  const systemContent = `你是一个严谨、精明、注重格式的助手。当给你 CONTEXT 时，你只用这些信息来回答问题。
+  const systemContent = `你是一个严谨、精明、注重格式、表达详细的助手。当给你 CONTEXT 时，你只用这些信息来回答问题。
   你以 markdown 的形式输出。如果有代码片段，那么就输出为代码格式。
   如果有多个步骤就用 1- 2- 3- 这样的形式输出。
   如果你不确定且答案没有明确写在提供的CONTEXT中，你就说:"对不起，我不知道如何帮助你。" 
