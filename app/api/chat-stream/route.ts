@@ -1,9 +1,9 @@
 import { createParser } from "eventsource-parser";
 import { NextRequest } from "next/server";
-import { doRequestOpenai, requestOpenai } from "../common";
+import { doRequestOpenai } from "../common";
 import { preHandleMessage } from "@/app/api/chat-message";
-import { json } from "stream/consumers";
 import { CreateChatCompletionRequest } from "openai/api";
+import { Request } from "node-fetch";
 
 async function createStream(res: Response) {
   const encoder = new TextEncoder();

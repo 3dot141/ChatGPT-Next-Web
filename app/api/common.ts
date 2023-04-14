@@ -6,7 +6,7 @@ const PROTOCOL = process.env.PROTOCOL ?? DEFAULT_PROTOCOL;
 const BASE_URL = process.env.BASE_URL ?? OPENAI_URL;
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
 
-export type Request = {
+export type CustomRequest = {
   headers: Headers;
   method: string;
   body: BodyInit | null;
@@ -28,7 +28,7 @@ export async function requestOpenai(req: NextRequest) {
   });
 }
 
-export async function doRequestOpenai(req: Request) {
+export async function doRequestOpenai(req: CustomRequest) {
   const apiKey = req.headers.get("token");
   const openaiPath = req.headers.get("path");
 
