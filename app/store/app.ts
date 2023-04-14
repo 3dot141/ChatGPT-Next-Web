@@ -1,10 +1,11 @@
-import {create} from "zustand";
-import {persist} from "zustand/middleware";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-import {type ChatCompletionResponseMessage} from "openai";
+import { type ChatCompletionResponseMessage } from "openai";
 import {
   ControllerPool,
-  requestChatStream, requestChatStreamV2,
+  requestChatStream,
+  requestChatStreamV2,
   requestWithPrompt,
 } from "../requests";
 import { isMobileScreen, trimTopic } from "../utils";
@@ -32,7 +33,7 @@ export function createMessage(override: Partial<Message>): Message {
 export type SessionMsg = {
   userMessage: Message;
   recentMessages: Message[];
-}
+};
 
 export enum SubmitKey {
   Enter = "Enter",
@@ -141,7 +142,7 @@ const DEFAULT_CONFIG: ChatConfig = {
   historyMessageCount: 4,
   compressMessageLengthThreshold: 1000,
   sendBotMessages: true as boolean,
-  submitKey: SubmitKey.CtrlEnter as SubmitKey,
+  submitKey: SubmitKey.Enter as SubmitKey,
   avatar: "1f603",
   fontSize: 14,
   theme: Theme.Auto as Theme,
@@ -405,49 +406,54 @@ export const useChatStore = create<ChatStore>()(
           session.messages.push(botMessage);
         });
 
-
-        requestChatStreamV2({
-          userMessage,
-          recentMessages
-        }, {
-          onMessage(content, done) {
-            // stream response
-            if (done) {
+        requestChatStreamV2(
+          {
+            userMessage,
+            recentMessages,
+          },
+          {
+            onMessage(content, done) {
+              // stream response
+              if (done) {
+                botMessage.streaming = false;
+                botMessage.content = content;
+                get().onNewMessage(botMessage);
+                ControllerPool.remove(
+                  sessionIndex,
+                  botMessage.id ?? messageIndex,
+                );
+              } else {
+                botMessage.content = content;
+                set(() => ({}));
+              }
+            },
+            onError(error, statusCode) {
+              if (statusCode === 401) {
+                botMessage.content = Locale.Error.Unauthorized;
+              } else {
+                botMessage.content += "\n\n" + Locale.Store.Error;
+              }
               botMessage.streaming = false;
-              botMessage.content = content;
-              get().onNewMessage(botMessage);
+              userMessage.isError = true;
+              botMessage.isError = true;
+              set(() => ({}));
               ControllerPool.remove(
                 sessionIndex,
                 botMessage.id ?? messageIndex,
               );
-            } else {
-              botMessage.content = content;
-              set(() => ({}));
-            }
+            },
+            onController(controller) {
+              // collect controller for stop/retry
+              ControllerPool.addController(
+                sessionIndex,
+                botMessage.id ?? messageIndex,
+                controller,
+              );
+            },
+            filterBot: !get().config.sendBotMessages,
+            modelConfig: get().config.modelConfig,
           },
-          onError(error, statusCode) {
-            if (statusCode === 401) {
-              botMessage.content = Locale.Error.Unauthorized;
-            } else {
-              botMessage.content += "\n\n" + Locale.Store.Error;
-            }
-            botMessage.streaming = false;
-            userMessage.isError = true;
-            botMessage.isError = true;
-            set(() => ({}));
-            ControllerPool.remove(sessionIndex, botMessage.id ?? messageIndex);
-          },
-          onController(controller) {
-            // collect controller for stop/retry
-            ControllerPool.addController(
-              sessionIndex,
-              botMessage.id ?? messageIndex,
-              controller,
-            );
-          },
-          filterBot: !get().config.sendBotMessages,
-          modelConfig: get().config.modelConfig,
-        });
+        );
       },
 
       getMemoryPrompt() {
