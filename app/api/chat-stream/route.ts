@@ -48,7 +48,7 @@ async function createStream(res: Response) {
   return stream;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const chatCompletionRequest = await preHandleMessage(req);
     const res = await doRequestOpenai({

@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 import { type ChatCompletionResponseMessage } from "openai";
 import {
   ControllerPool,
+  requestAnalysis,
   requestChatStream,
   requestChatStreamV2,
   requestWithPrompt,
@@ -417,6 +418,7 @@ export const useChatStore = create<ChatStore>()(
                 sessionIndex,
                 botMessage.id ?? messageIndex,
               );
+              requestAnalysis(userMessage, botMessage);
             } else {
               botMessage.content = content;
               set(() => ({}));
@@ -433,6 +435,7 @@ export const useChatStore = create<ChatStore>()(
             botMessage.isError = true;
             set(() => ({}));
             ControllerPool.remove(sessionIndex, botMessage.id ?? messageIndex);
+            requestAnalysis(userMessage, botMessage);
           },
           onController(controller) {
             // collect controller for stop/retry

@@ -3,7 +3,6 @@ import { supabaseClient } from "@/app/lib/embeddings-supabase";
 import GPT3Tokenizer from "gpt3-tokenizer";
 import { requestEmbedding } from "@/app/api/common";
 import { CreateChatCompletionRequest } from "openai/api";
-import { NextRequest } from "next/server";
 
 export type Message = ChatCompletionResponseMessage;
 
@@ -148,7 +147,7 @@ async function makeChatMessages(
   return { userMessage: userMessage, recentMessages: recentMessages };
 }
 export async function preHandleMessage(
-  req: NextRequest,
+  req: Request,
 ): Promise<CreateChatCompletionRequest> {
   try {
     let apiKey: string;
@@ -160,8 +159,7 @@ export async function preHandleMessage(
       apiKey = process.env.OPENAI_API_KEY;
     }
 
-    const body = await req.text();
-    const completionReq = JSON.parse(body) as CreateChatCompletionRequest;
+    const completionReq = (await req.json()) as CreateChatCompletionRequest;
     const messages = completionReq.messages;
     const sessionMsg: SessionMsg = {
       userMessage: messages[messages.length - 1],

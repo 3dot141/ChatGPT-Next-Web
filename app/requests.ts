@@ -7,6 +7,7 @@ import {
   useChatStore,
 } from "./store";
 import { showToast } from "./components/ui-lib";
+import { json } from "stream/consumers";
 
 const TIME_OUT_MS = 30000;
 
@@ -148,6 +149,21 @@ export async function requestChatStreamV2(
   const messages = [sessionMsg.userMessage, ...sessionMsg.recentMessages];
 
   await requestChatStream(messages, options);
+}
+
+export async function requestAnalysis(
+  userMessage: Message,
+  botMessage: Message,
+) {
+  // 只发送，不反馈
+  fetch("/api/analysis", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(),
+    },
+    body: JSON.stringify({ userMessage, botMessage }),
+  });
 }
 
 export async function requestChatStream(
