@@ -141,7 +141,7 @@ async function makeChatMessages(
   if (splits && splits.length !== 0) {
     if ("fr" === splits[0].toLowerCase()) {
       // @ts-ignore
-      return await makeFrMsgChain(content, apiKey, recentMessages);
+      return await makeFrMsgChain(apiKey, content, recentMessages);
     }
   }
 
