@@ -32,7 +32,7 @@ async function makeFrMsgChain(
   // console.log("embedding: ", embedding);
 
   const { data: documents, error } = await supabaseClient.rpc(
-    "match_documents",
+    "match_documents_v2",
     {
       query_embedding: embedding,
       similarity_threshold: 0.1, // Choose an appropriate threshold for your data

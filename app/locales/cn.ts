@@ -147,8 +147,9 @@ const cn = {
   },
   Store: {
     DefaultTopic: "新的聊天",
-    BotHello: "有什么可以帮你的吗",
-    Error: "出错了，稍后重试吧",
+    BotHello:
+      "直接输入会和 ChatGPT 聊天，输入 / 可以搜索目前支持的范式，比如 fr帮助文档助手",
+    Error: "出错了，请稍后重试或者清空聊天内容后重试",
     Prompt: {
       History: (content: string) =>
         "这是 ai 和用户的历史聊天总结作为前情提要：" + content,
